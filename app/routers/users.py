@@ -56,7 +56,7 @@ async def modify_user_name(
 	)
 
 # Change Password
-@router.post("/change_password/{user_id}",
+@router.patch("/change_password/{user_id}",
 			 status_code=status.HTTP_201_CREATED,
 			 summary="Update user password")
 async def change_password(
@@ -64,7 +64,27 @@ async def change_password(
 		request: ChangePasswordRequest,
 		session: AsyncSession = Depends(get_session)
 ):
-	pass
+	"""
+	Change password for logged user
+	:param user_id:
+	:param request:
+	:param session:
+	:return: dict()
+	"""
+	try:
+		await user_controller.change_password_user(
+			session=session,
+			user_id=user_id,
+			data=request
+		)
+		return {"result": 'Password changed successfully.'}
+	except ValueError as e:
+		raise HTTPException(
+			status_code=400, detail=f"{e}")
+	except Exception as e:
+		raise HTTPException(
+			status_code=500,
+			detail=f"An unexpected error occurred. Report this message to support: {e}")
 
 # Delete user
 @router.delete("/user/{user_id}", status_code=status.HTTP_200_OK, summary="Delete user")

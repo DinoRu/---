@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.users import user_repository
-from app.schemas.users import UserOut
+from app.schemas.users import UserOut, ChangePasswordRequest
 
 
 class UserController:
@@ -90,6 +90,15 @@ class UserController:
 				detail="Table was empty."
 			)
 		return {"detail": "Users deleted successfully."}
+
+	@classmethod
+	async def change_password_user(cls, session: AsyncSession,
+								   user_id: uuid.UUID, data: ChangePasswordRequest):
+		return await user_repository.change_user_password(
+			session=session,
+			user_id=user_id,
+			data=data
+		)
 
 
 user_controller = UserController()

@@ -4,6 +4,7 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.users import User
+from app.schemas.users import ChangePasswordRequest
 from app.utils.hash_password import HashPassword
 
 hsh_pwd = HashPassword()
@@ -63,5 +64,16 @@ class UserRepository:
 		result = await session.execute(stmt)
 		await session.commit()
 		return result.rowcount > 0
+
+	@classmethod
+	async def change_user_password(cls, session: AsyncSession, data: ChangePasswordRequest,
+								   user_id: uuid.UUID):
+		user = await cls.get_user(session, user_id)
+		if not hsh_pwd.verify_hash(data.old_password, user.password):
+			raise ValueError(
+				f"Old password provided doesn't match, please try again")
+		user.password = hsh_pwd.create_hash(data.new_password)
+		await session.commit()
+
 
 user_repository = UserRepository()
