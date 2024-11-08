@@ -24,14 +24,11 @@ class CreateTask(TaskBase):
 	supervisor: Optional[str] = None
 
 
-class TaskUpdateRequest(BaseModel):
+class TaskUpdate(BaseModel):
 	completion_date: Optional[datetime] = None
-	latitude: Optional[float] = None
-	longitude: Optional[float] = None
 	photo_url_1: Optional[HttpUrl] = None
 	photo_url_2: Optional[HttpUrl] = None
 	comments: Optional[str] = None
-	supervisor: Optional[str] = None
 
 
 class TaskComplete(TaskBase):

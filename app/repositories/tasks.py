@@ -1,11 +1,14 @@
 import uuid
+from datetime import datetime
 from typing import Optional
 
+import requests
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.tasks import Task
-from app.schemas.tasks import CreateTask, TaskUpdateRequest, TaskComplete
+from app.schemas.tasks import CreateTask, TaskUpdate
+from app.utils.photo_metadata import photo_metadata
 
 
 class TaskRepository:
@@ -32,13 +35,26 @@ class TaskRepository:
 
 	@classmethod
 	async def update(cls, session: AsyncSession, task_id: uuid.UUID,
-					 data: TaskUpdateRequest, user_name: str) -> Optional[TaskComplete]:
+					 update_data: TaskUpdate, user_name: str) -> Optional[Task]:
 		task = await cls.get_task(session, task_id)
 		if not task:
 			return None
-		for key, value in data.dict(exclude_unset=True).items():
+		for key, value in update_data.dict(exclude_unset=True).items():
 			setattr(task, key, value)
+		photo = requests.get(task.photo_url_1)
+		if photo.status_code != 200:
+			raise ValueError(
+				f"Photo not downloaded."
+			)
+		coordinates = photo_metadata.get_coordinate(photo)
+		if not coordinates:
+			raise ValueError(
+				f"Coordinates not found."
+			)
+		task.latitude = coordinates.latitude
+		task.longitude = coordinates.longitude
 		task.supervisor = user_name
+		task.completion_date = datetime.now().strftime("%d-%m-%Y")
 		await session.commit()
 		await session.refresh(task)
 		return task
@@ -56,3 +72,6 @@ class TaskRepository:
 		result = await session.execute(stmt)
 		await session.commit()
 		return result.rowcount > 0
+
+
+task_repository = TaskRepository()
