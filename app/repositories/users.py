@@ -1,10 +1,11 @@
 import uuid
 
 from sqlalchemy import select, update, delete
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.users import User
-from app.schemas.users import ChangePasswordRequest
+from app.schemas.users import ChangePasswordRequest, CreateUserRequest
 from app.utils.hash_password import HashPassword
 
 hsh_pwd = HashPassword()
@@ -12,16 +13,17 @@ hsh_pwd = HashPassword()
 class UserRepository:
 
 	@classmethod
-	async def create(cls, session: AsyncSession, full_name: str, password: str) -> User:
-		new_user = User(
-			full_name=full_name,
-			password=password
-		)
+	async def create(cls, session: AsyncSession, data: CreateUserRequest) -> User:
+		new_user = User(**data.dict())
 		hashed_password = hsh_pwd.create_hash(new_user.password)
 		new_user.password = hashed_password
-		session.add(new_user)
-		await session.commit()
-		await session.refresh(new_user)
+		try:
+			session.add(new_user)
+			await session.commit()
+			await session.refresh(new_user)
+		except SQLAlchemyError as e:
+			# Rollback en cas d'erreur
+			await session.rollback()
 		return new_user
 
 	@classmethod
@@ -33,6 +35,12 @@ class UserRepository:
 	@classmethod
 	async def get_user(cls, session: AsyncSession, user_id: uuid.UUID):
 		stmt = select(User).where(User.user_id == user_id)
+		result = await session.execute(stmt)
+		return result.scalar_one_or_none()
+
+	@classmethod
+	async def get_user_by_username(cls, session: AsyncSession, username: str):
+		stmt = select(User).where(User.username == username)
 		result = await session.execute(stmt)
 		return result.scalar_one_or_none()
 

@@ -7,11 +7,11 @@ from pydantic import BaseModel, HttpUrl
 
 class TaskBase(BaseModel):
 	code: str
-	obj_name: str
-	address: str
-	according_date: str
-	king_of_work: str
-	voltage: float
+	dispatcher_name: str
+	location: str
+	planner_date: str
+	work_type: str
+	voltage_class: float
 
 
 class CreateTask(TaskBase):

@@ -30,14 +30,14 @@ class TaskController:
 	@classmethod
 	async def modify_task(cls, session: AsyncSession,
 						  task_id: uuid.UUID,
-						  user: UserOut,
+						  username: str,
 						  update_data: TaskUpdate) -> Optional[TaskComplete]:
-		task = await task_repository.get_task(session=session, task_id=task_id)
-		if not task:
-			raise HTTPException(
-				status_code=status.HTTP_404_NOT_FOUND,
-				detail='Task not found.'
-			)
-		return TaskComplete.from_orm(task)
+		completed_task = await task_repository.update(
+			session=session,
+			task_id=task_id,
+			update_data=update_data,
+			user_name=username
+		)
+		return completed_task
 
-
+task_controller = TaskController()

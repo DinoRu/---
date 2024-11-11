@@ -1,11 +1,13 @@
 import uuid
 
 from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.controllers.users import user_controller
 from app.database import get_session
-from app.schemas.users import CreateUserRequest, UpdateUserRequest, ChangePasswordRequest
+from app.schemas.users import CreateUserRequest, UpdateUserRequest, ChangePasswordRequest, UserOut, \
+	TokenData, LoginData
 
 router = APIRouter(
 	prefix='/users',
@@ -29,20 +31,23 @@ async def get_user(
 
 
 # Create or Add new user
-@router.post("/add", status_code=status.HTTP_201_CREATED, summary="Add new user")
+@router.post("/add",
+			 status_code=status.HTTP_201_CREATED,
+			 response_model=UserOut,
+			 summary="Add new user")
 async def add_user(
-		request: CreateUserRequest,
+		user_data: CreateUserRequest,
 		session: AsyncSession = Depends(get_session)
 ):
 	return await user_controller.add_user(
 		session=session,
-		full_name=request.full_name,
-		password=request.password
+		user_data=user_data
 	)
 
-
 # Update user by ID
-@router.patch("/user/{user_id}", status_code=status.HTTP_200_OK, summary="Update user name")
+@router.patch("/user/{user_id}",
+			  status_code=status.HTTP_200_OK,
+			  summary="Update user name")
 async def modify_user_name(
 		user_id: uuid.UUID,
 		request: UpdateUserRequest,
@@ -97,3 +102,13 @@ async def remove_user(
 @router.delete("/remove/users", status_code=status.HTTP_200_OK, summary="Remove all users")
 async def remove_users(session: AsyncSession = Depends(get_session)):
 	return await user_controller.delete_all_users(session)
+
+
+@router.post("/login", status_code=status.HTTP_201_CREATED, response_model=TokenData)
+async def login(
+		form_data: OAuth2PasswordRequestForm = Depends(),
+		session: AsyncSession = Depends(get_session)
+):
+	return await user_controller.login(username=form_data.username,
+									   password=form_data.password,
+									   session=session)

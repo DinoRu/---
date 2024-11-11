@@ -11,12 +11,12 @@ class Task(Base):
 
 	task_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, index=True, default=uuid.uuid4())
 	code: Mapped[str]
-	obj_name: Mapped[str]
-	address: Mapped[str]
-	according_date: Mapped[datetime]
-	king_of_work: Mapped[str]
+	dispatcher_name: Mapped[str]
+	location: Mapped[str]
+	planner_date: Mapped[datetime]
+	work_type: Mapped[str]
 	completion_date: Mapped[datetime] = mapped_column(default=None, nullable=True)
-	voltage: Mapped[float]
+	voltage_class: Mapped[float]
 	latitude: Mapped[float | None] = mapped_column(nullable=True)
 	longitude: Mapped[float | None] = mapped_column(nullable=True)
 	photo_url_1: Mapped[str | None]
