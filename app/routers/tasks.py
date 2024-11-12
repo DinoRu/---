@@ -33,9 +33,9 @@ async def import_tasks_from_excel(
 			detail="Only .xlsx files are supported."
 		)
 	# Load the Excel file
-	upload_file = file.file.read()
+	content = file.file.read()
 	try:
-		workbook = load_workbook(io.BytesIO(upload_file))
+		workbook = load_workbook(io.BytesIO(content))
 		sheet = workbook.active
 	except Exception as e:
 		raise HTTPException(
@@ -43,16 +43,22 @@ async def import_tasks_from_excel(
 			detail="Invalid Excel file."
 		)
 	tasks = []
-	for row in sheet.iter_rows(min_row=2, values_only=True):  # Skip header
-		# Parse each row and map it to a CreateTask schema, handling empty cells as None
+	for row in range(2, sheet.max_row + 1):
 		try:
 			task_data = CreateTask(
-				code=row[0],
-				dispatcher_name=row[1] if row[1] is not None else None,
-				location=row[2] if row[2] is not None else None,
-				planned_date=row[3] if row[3] is not None else None,
-				voltage_class=row[4] if row[4] is not None else None,
-				work_type=row[5] if row[5] is not None else None,
+				code=str(sheet.cell(row=row, column=1).value)
+							if sheet.cell(row=row, column=1).value else None,
+				dispatcher_name=str(sheet.cell(row=row, column=2).value) if
+							sheet.cell(row=row, column=2).value else None,
+				location=str(sheet.cell(row=row, column=3).value) if sheet.cell(
+					row=row, column=3
+				).value else None,
+				planner_date=str(sheet.cell(row=row, column=4).value)
+							if sheet.cell(row=row, column=4).value else None,
+				voltage_class=str(sheet.cell(row=row, column=5).value)
+								if sheet.cell(row=row, column=5).value else None,
+				work_type=str(sheet.cell(row=row, column=6).value)
+							if sheet.cell(row=row, column=6).value else None,
 				completion_date=None,
 				latitude=None,
 				longitude=None,
@@ -61,14 +67,16 @@ async def import_tasks_from_excel(
 				supervisor=None,
 				comment=None
 			)
-			new_task = await task_controller.add_task(session=session, data=task_data)
-			tasks.append(new_task)
-		except Exception as e:
+		except KeyError as e:
 			raise HTTPException(
-				status_code=status.HTTP_400_BAD_REQUEST,
-				detail=f"Error processing row {row}: {str(e)}"
-			) from e
-		return tasks
+				status_code=400, detail=f"Missing column in the Excel file: {e}"
+			)
+		task = await task_controller.add_task(session=session, data=task_data)
+		tasks.append(task)
+	total = len(tasks)
+	print(total)
+	return tasks
+
 
 @router.put("/task/{task_id}",
 			status_code=status.HTTP_200_OK,
@@ -86,3 +94,40 @@ async def completed_task(
 		update_data=data,
 		username=user.username
 	)
+
+@router.get("/",
+			status_code=status.HTTP_200_OK,
+			summary="Get all tasks",
+			response_model=List[TaskComplete]
+			)
+async def get_all_tasks(
+		session: AsyncSession = Depends(get_session)
+):
+	return await task_controller.all(session=session)
+
+@router.get("/task/{task_id}",
+			status_code=status.HTTP_200_OK,
+			summary="Get Task by task_ID.",
+			response_model=TaskComplete)
+async def get_one_or_404(
+		task_id: uuid.UUID,
+		session: AsyncSession = Depends(get_session)
+):
+	return await task_controller.get_task_or_404(session, task_id)
+
+@router.delete("/",
+			   status_code=status.HTTP_200_OK,
+			   summary="Delete all Tasks.")
+async def remove_all_tasks(
+		session: AsyncSession = Depends(get_session)
+):
+	return await task_controller.delete_all(session=session)
+
+
+@router.delete("/task/{task_id}", status_code=status.HTTP_200_OK,
+			   summary="Remove task by Task_ID.")
+async def remove_task(
+		task_id: uuid.UUID,
+		session: AsyncSession = Depends(get_session)
+):
+	return await task_controller.delete_or_404(session=session, task_id=task_id)

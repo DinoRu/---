@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.controllers.users import user_controller
 from app.database import get_session
 from app.schemas.users import CreateUserRequest, UpdateUserRequest, ChangePasswordRequest, UserOut, \
-	TokenData, LoginData
+	TokenData
 
 router = APIRouter(
 	prefix='/users',

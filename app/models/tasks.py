@@ -13,7 +13,7 @@ class Task(Base):
 	code: Mapped[str]
 	dispatcher_name: Mapped[str]
 	location: Mapped[str]
-	planner_date: Mapped[datetime]
+	planner_date: Mapped[str]
 	work_type: Mapped[str]
 	completion_date: Mapped[datetime] = mapped_column(default=None, nullable=True)
 	voltage_class: Mapped[float]

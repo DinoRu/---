@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 import requests
 from fastapi import HTTPException, status
@@ -39,5 +39,45 @@ class TaskController:
 			user_name=username
 		)
 		return completed_task
+
+	@classmethod
+	async def all(cls, session: AsyncSession) -> List[TaskComplete]:
+		tasks = await task_repository.get_tasks(session=session)
+		if not tasks:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="Tasks not found."
+			)
+		return tasks
+
+	@classmethod
+	async def get_task_or_404(cls, session: AsyncSession, task_id: uuid.UUID) -> TaskComplete:
+		task = await task_repository.get_task(session=session, task_id=task_id)
+		if not task:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="Task not found."
+			)
+		return task
+
+	@classmethod
+	async def delete_all(cls, session: AsyncSession):
+		success = await task_repository.delete_tasks(session=session)
+		if not success:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="No Task found."
+			)
+		return {"detail": "Tasks deleted successfully."}
+
+	@classmethod
+	async def delete_or_404(cls, session: AsyncSession, task_id: uuid.UUID):
+		success = await task_repository.delete_task(session=session, task_id=task_id)
+		if not success:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="Task not Found."
+			)
+		return {"detail": "Task deleted successfully."}
 
 task_controller = TaskController()
