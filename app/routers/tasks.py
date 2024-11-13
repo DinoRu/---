@@ -27,25 +27,21 @@ async def import_tasks_from_excel(
 		file: UploadFile = File(...),
 		session: AsyncSession = Depends(get_session)
 ):
-	if not file.filename.endswith(".xlsx"):
-		raise HTTPException(
-			status_code=status.HTTP_400_BAD_REQUEST,
-			detail="Only .xlsx files are supported."
-		)
+	# if not file.filename.endswith(".xlsx"):
+	# 	raise HTTPException(
+	# 		status_code=status.HTTP_400_BAD_REQUEST,
+	# 		detail="Only .xlsx files are supported."
+	# 	)
 	# Load the Excel file
+	file.file.seek(0)
 	content = file.file.read()
-	try:
-		workbook = load_workbook(io.BytesIO(content))
-		sheet = workbook.active
-	except Exception as e:
-		raise HTTPException(
-			status_code=status.HTTP_400_BAD_REQUEST,
-			detail="Invalid Excel file."
-		)
+	workbook = load_workbook(io.BytesIO(content))
+	sheet = workbook.active
 	tasks = []
 	for row in range(2, sheet.max_row + 1):
 		try:
 			task_data = CreateTask(
+				task_id=uuid.uuid4(),
 				code=str(sheet.cell(row=row, column=1).value)
 							if sheet.cell(row=row, column=1).value else None,
 				dispatcher_name=str(sheet.cell(row=row, column=2).value) if
@@ -55,7 +51,7 @@ async def import_tasks_from_excel(
 				).value else None,
 				planner_date=str(sheet.cell(row=row, column=4).value)
 							if sheet.cell(row=row, column=4).value else None,
-				voltage_class=str(sheet.cell(row=row, column=5).value)
+				voltage_class=sheet.cell(row=row, column=5).value
 								if sheet.cell(row=row, column=5).value else None,
 				work_type=str(sheet.cell(row=row, column=6).value)
 							if sheet.cell(row=row, column=6).value else None,

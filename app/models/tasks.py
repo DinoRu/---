@@ -9,7 +9,7 @@ from app.database import Base
 class Task(Base):
 	__tablename__ = "tasks"
 
-	task_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, index=True, default=uuid.uuid4())
+	task_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4())
 	code: Mapped[str]
 	dispatcher_name: Mapped[str]
 	location: Mapped[str]

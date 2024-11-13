@@ -15,6 +15,7 @@ class TaskBase(BaseModel):
 
 
 class CreateTask(TaskBase):
+	task_id: uuid.UUID
 	completion_date: Optional[datetime] = None
 	latitude: Optional[float] = None
 	longitude: Optional[float] = None
