@@ -14,34 +14,44 @@ class TaskBase(BaseModel):
 	voltage_class: float
 
 
-class CreateTask(TaskBase):
+class CreateTask(BaseModel):
 	task_id: uuid.UUID
-	completion_date: Optional[datetime] = None
-	latitude: Optional[float] = None
-	longitude: Optional[float] = None
-	photo_url_1: Optional[HttpUrl] = None
-	photo_url_2: Optional[HttpUrl] = None
-	comments: Optional[str] = None
-	supervisor: Optional[str] = None
+	completion_date: Optional[datetime | None]
+	latitude: float | None
+	longitude: float | None
+	photo_url_1: Optional[HttpUrl | None]
+	photo_url_2: Optional[HttpUrl | None]
+	comments: str | None
+	supervisor: Optional[str | None]
+	code: str
+	dispatcher_name: str
+	location: str
+	planner_date: str
+	work_type: str
+	voltage_class: float
 
 
 class TaskUpdate(BaseModel):
-	completion_date: Optional[datetime] = None
-	photo_url_1: Optional[HttpUrl] = None
-	photo_url_2: Optional[HttpUrl] = None
-	comments: Optional[str] = None
+	photo_url_1: HttpUrl
+	photo_url_2: HttpUrl
+	comments: str | None
 
 
-class TaskComplete(TaskBase):
+class TaskComplete(BaseModel):
 	task_id: uuid.UUID
-	completion_date: Optional[datetime] = None
-	latitude: Optional[float] = None
-	longitude: Optional[float] = None
-	photo_url_1: Optional[HttpUrl] = None
-	photo_url_2: Optional[HttpUrl] = None
-	comments: Optional[str] = None
-	supervisor: Optional[str] = None
+	completion_date: datetime | None
+	latitude: float | None
+	longitude: float | None
+	photo_url_1: HttpUrl | None
+	photo_url_2: HttpUrl | None
+	comments: str | None
+	supervisor: str | None
+	code: str
+	dispatcher_name: str
+	location: str
+	planner_date: str
+	work_type: str
+	voltage_class: float
 
 	class Config:
 		from_attributes = True
-		arbitrary_types_allowed = True

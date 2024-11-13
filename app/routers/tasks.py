@@ -51,7 +51,7 @@ async def import_tasks_from_excel(
 				).value else None,
 				planner_date=str(sheet.cell(row=row, column=4).value)
 							if sheet.cell(row=row, column=4).value else None,
-				voltage_class=sheet.cell(row=row, column=5).value
+				voltage_class=float(sheet.cell(row=row, column=5).value)
 								if sheet.cell(row=row, column=5).value else None,
 				work_type=str(sheet.cell(row=row, column=6).value)
 							if sheet.cell(row=row, column=6).value else None,
@@ -61,7 +61,7 @@ async def import_tasks_from_excel(
 				photo_url_1=None,
 				photo_url_2=None,
 				supervisor=None,
-				comment=None
+				comments=None
 			)
 		except KeyError as e:
 			raise HTTPException(

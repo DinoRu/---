@@ -15,7 +15,22 @@ class TaskRepository:
 
 	@classmethod
 	async def create_task(cls, session: AsyncSession,  data: CreateTask) -> Task:
-		task = Task(**data.dict())
+		task = Task(
+			task_id=data.task_id,
+			code=data.code,
+			dispatcher_name=data.dispatcher_name,
+			location=data.location,
+			planner_date=data.planner_date,
+			work_type=data.work_type,
+			voltage_class=data.voltage_class,
+			completion_date=data.completion_date,
+			latitude=data.latitude,
+			longitude=data.longitude,
+			photo_url_1=data.photo_url_1,
+			photo_url_2=data.photo_url_2,
+			supervisor=data.supervisor,
+			comments=data.comments
+		)
 		session.add(task)
 		await session.commit()
 		await session.refresh(task)
