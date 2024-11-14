@@ -15,7 +15,7 @@ class Task(Base):
 	location: Mapped[str]
 	planner_date: Mapped[str]
 	work_type: Mapped[str]
-	completion_date: Mapped[datetime] = mapped_column(default=None, nullable=True)
+	completion_date: Mapped[str] = mapped_column(default=None, nullable=True)
 	voltage_class: Mapped[float]
 	latitude: Mapped[float | None] = mapped_column(nullable=True)
 	longitude: Mapped[float | None] = mapped_column(nullable=True)

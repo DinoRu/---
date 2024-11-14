@@ -61,7 +61,7 @@ class TaskRepository:
 			raise ValueError(
 				f"Photo not downloaded."
 			)
-		coordinates = photo_metadata.get_coordinate(photo)
+		coordinates = photo_metadata.get_coordinate(photo.content)
 		if not coordinates:
 			raise ValueError(
 				f"Coordinates not found."
@@ -69,7 +69,7 @@ class TaskRepository:
 		task.latitude = coordinates.latitude
 		task.longitude = coordinates.longitude
 		task.supervisor = user_name
-		task.completion_date = datetime.now().strftime("%d-%m-%Y")
+		task.completion_date = datetime.now().strftime("%d-%m-%Y %H:%M")
 		await session.commit()
 		await session.refresh(task)
 		return task

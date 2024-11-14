@@ -16,42 +16,42 @@ class TaskBase(BaseModel):
 
 class CreateTask(BaseModel):
 	task_id: uuid.UUID
-	completion_date: Optional[datetime | None]
-	latitude: float | None
-	longitude: float | None
-	photo_url_1: Optional[HttpUrl | None]
-	photo_url_2: Optional[HttpUrl | None]
-	comments: str | None
-	supervisor: Optional[str | None]
 	code: str
 	dispatcher_name: str
 	location: str
 	planner_date: str
 	work_type: str
+	completion_date: Optional[str | None]
 	voltage_class: float
+	latitude: float | None
+	longitude: float | None
+	photo_url_1: Optional[str | None]
+	photo_url_2: Optional[str | None]
+	comments: str | None
+	supervisor: Optional[str | None]
 
 
 class TaskUpdate(BaseModel):
-	photo_url_1: HttpUrl
-	photo_url_2: HttpUrl
+	photo_url_1: str
+	photo_url_2: str
 	comments: str | None
 
 
 class TaskComplete(BaseModel):
 	task_id: uuid.UUID
-	completion_date: datetime | None
-	latitude: float | None
-	longitude: float | None
-	photo_url_1: HttpUrl | None
-	photo_url_2: HttpUrl | None
-	comments: str | None
-	supervisor: str | None
 	code: str
 	dispatcher_name: str
 	location: str
 	planner_date: str
 	work_type: str
+	completion_date: str | None
 	voltage_class: float
+	latitude: float | None
+	longitude: float | None
+	photo_url_1: str | None
+	photo_url_2: str | None
+	comments: str | None
+	supervisor: str | None
 
 	class Config:
 		from_attributes = True

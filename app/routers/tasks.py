@@ -42,19 +42,12 @@ async def import_tasks_from_excel(
 		try:
 			task_data = CreateTask(
 				task_id=uuid.uuid4(),
-				code=str(sheet.cell(row=row, column=1).value)
-							if sheet.cell(row=row, column=1).value else None,
-				dispatcher_name=str(sheet.cell(row=row, column=2).value) if
-							sheet.cell(row=row, column=2).value else None,
-				location=str(sheet.cell(row=row, column=3).value) if sheet.cell(
-					row=row, column=3
-				).value else None,
-				planner_date=str(sheet.cell(row=row, column=4).value)
-							if sheet.cell(row=row, column=4).value else None,
-				voltage_class=float(sheet.cell(row=row, column=5).value)
-								if sheet.cell(row=row, column=5).value else None,
-				work_type=str(sheet.cell(row=row, column=6).value)
-							if sheet.cell(row=row, column=6).value else None,
+				code=str(sheet.cell(row=row, column=1).value) if sheet.cell(row=row, column=1).value else "",
+				dispatcher_name=str(sheet.cell(row=row, column=2).value) if sheet.cell(row=row, column=2).value else "",
+				location=str(sheet.cell(row=row, column=3).value) if sheet.cell(row=row, column=3).value else "",
+				planner_date=str(sheet.cell(row=row, column=4).value) if sheet.cell(row=row, column=4).value else "",
+				voltage_class=float(sheet.cell(row=row, column=5).value) if sheet.cell(row=row, column=5).value else 0.0,
+				work_type=str(sheet.cell(row=row, column=6).value) if sheet.cell(row=row, column=6).value else "",
 				completion_date=None,
 				latitude=None,
 				longitude=None,
@@ -84,12 +77,13 @@ async def completed_task(
 		session: AsyncSession = Depends(get_session),
 		user: UserOut = Depends(get_current_user)
 ):
-	return await task_controller.modify_task(
+	task = await task_controller.modify_task(
 		session=session,
 		task_id=task_id,
 		update_data=data,
 		username=user.username
 	)
+	return task
 
 @router.get("/",
 			status_code=status.HTTP_200_OK,
@@ -120,7 +114,8 @@ async def remove_all_tasks(
 	return await task_controller.delete_all(session=session)
 
 
-@router.delete("/task/{task_id}", status_code=status.HTTP_200_OK,
+@router.delete("/task/{task_id}",
+			   status_code=status.HTTP_200_OK,
 			   summary="Remove task by Task_ID.")
 async def remove_task(
 		task_id: uuid.UUID,

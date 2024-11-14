@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,14 +29,14 @@ class UserController:
 		return user
 
 	@classmethod
-	async def all_users(cls, session: AsyncSession):
+	async def all_users(cls, session: AsyncSession) -> List[UserOut]:
 		users = await user_repository.get_users(session=session)
 		if not users:
 			raise HTTPException(
 				status_code=status.HTTP_404_NOT_FOUND,
 				detail="List of users not found."
 			)
-		return [{'user_id': user.user_id, 'full_name': user.full_name} for user in users]
+		return users
 
 	# Get user by user_id
 	@classmethod
