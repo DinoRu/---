@@ -1,4 +1,3 @@
-# from http.client import HTTPException
 import io
 import uuid
 from typing import List
@@ -12,6 +11,7 @@ from app.controllers.tasks import task_controller
 from app.database import get_session
 from app.schemas.tasks import TaskComplete, CreateTask, TaskUpdate
 from app.schemas.users import UserOut
+from app.utils.status import TaskStatus
 
 router = APIRouter(
 	prefix="/tasks",
@@ -54,7 +54,8 @@ async def import_tasks_from_excel(
 				photo_url_1=None,
 				photo_url_2=None,
 				supervisor=None,
-				comments=None
+				comments=None,
+				status=TaskStatus.EXECUTING
 			)
 		except KeyError as e:
 			raise HTTPException(
@@ -81,7 +82,7 @@ async def completed_task(
 		session=session,
 		task_id=task_id,
 		update_data=data,
-		username=user.username
+		username=user.full_name
 	)
 	return task
 

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.tasks import Task
 from app.schemas.tasks import CreateTask, TaskUpdate
 from app.utils.photo_metadata import photo_metadata
+from app.utils.status import TaskStatus
 
 
 class TaskRepository:
@@ -70,6 +71,7 @@ class TaskRepository:
 		task.longitude = coordinates.longitude
 		task.supervisor = user_name
 		task.completion_date = datetime.now().strftime("%d-%m-%Y %H:%M")
+		task.status = TaskStatus.COMPLETED
 		await session.commit()
 		await session.refresh(task)
 		return task

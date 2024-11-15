@@ -2,7 +2,9 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
+
+from app.utils.status import TaskStatus
 
 
 class TaskBase(BaseModel):
@@ -29,6 +31,7 @@ class CreateTask(BaseModel):
 	photo_url_2: Optional[str | None]
 	comments: str | None
 	supervisor: Optional[str | None]
+	status: TaskStatus
 
 
 class TaskUpdate(BaseModel):
@@ -52,6 +55,7 @@ class TaskComplete(BaseModel):
 	photo_url_2: str | None
 	comments: str | None
 	supervisor: str | None
+	status: TaskStatus
 
 	class Config:
 		from_attributes = True
