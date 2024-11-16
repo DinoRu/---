@@ -5,10 +5,12 @@ from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException, File, UploadFile
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.responses import Response
 
 from app.authentication import get_current_user
 from app.controllers.tasks import task_controller
 from app.database import get_session
+from app.models.users import User
 from app.schemas.tasks import TaskComplete, CreateTask, TaskUpdate
 from app.schemas.users import UserOut
 from app.utils.status import TaskStatus
@@ -86,6 +88,42 @@ async def completed_task(
 	)
 	return task
 
+@router.get("/task_by/{task_status/",
+			status_code=status.HTTP_200_OK,
+			summary="Get task by status.",
+			response_model=List[TaskComplete])
+async def get_tasks_by_status(
+		task_status: TaskStatus,
+		session: AsyncSession = Depends(get_session)
+):
+	tasks = await task_controller.get_by_status(session, task_status)
+	return tasks
+
+@router.get("/tasks/completed/",
+			status_code=status.HTTP_200_OK,
+			response_model=List[TaskComplete],
+			summary="Get completed tasks.")
+async def completed_tasks(session: AsyncSession = Depends(get_session)):
+	tasks = await task_controller.get_completed_tasks(session)
+	return tasks
+
+@router.get("/tasks/pending/",
+			status_code=status.HTTP_200_OK,
+			response_model=List[TaskComplete],
+			summary="Tasks pending tasks.")
+async def get_pending_tasks(session: AsyncSession = Depends(get_session)):
+	pending_tasks = await task_controller.get_pending_tasks(session)
+	return pending_tasks
+
+
+@router.get("tasks/supervisor", status_code=status.HTTP_200_OK, summary="Get tasks by supervisor.")
+async def tasks_by_supervisor(
+		supervisor: User = Depends(get_current_user),
+		session: AsyncSession = Depends(get_session)):
+	tasks = await task_controller.get_completed_tasks_by_supervisor(session, supervisor.full_name)
+	return tasks
+
+
 @router.get("/",
 			status_code=status.HTTP_200_OK,
 			summary="Get all tasks",
@@ -123,3 +161,22 @@ async def remove_task(
 		session: AsyncSession = Depends(get_session)
 ):
 	return await task_controller.delete_or_404(session=session, task_id=task_id)
+
+@router.post('/download',
+			 status_code=status.HTTP_201_CREATED,
+			 summary="Download completed tasks",
+			 response_description="Excel file with completed tasks"
+			 )
+async def download_completed_tasks(session: AsyncSession = Depends(get_session)):
+	file_stream = await task_controller.get_completed_tasks_files(session=session)
+	file_content = file_stream.getvalue()
+	headers = {
+		'Content-Disposition': 'attachment; filename="Reports.xlsx"',
+		"Access-Control-Allow-Origin": "*",
+		"Access-Control-Allow-Headers": "*",
+		"Access-Control_Allow-Methods": "POST, GET, OPTIONS",
+	}
+	return Response(content=file_content,
+                    media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8",
+                    headers=headers)
+

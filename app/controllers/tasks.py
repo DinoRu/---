@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.tasks import task_repository
 from app.schemas.tasks import CreateTask, TaskComplete, TaskUpdate
 from app.schemas.users import UserOut
+from app.utils.excel import get_file_from_database
 from app.utils.photo_metadata import photo_metadata
+from app.utils.status import TaskStatus
 
 
 class TaskController:
@@ -61,6 +63,36 @@ class TaskController:
 		return task
 
 	@classmethod
+	async def get_by_status(cls, session: AsyncSession, task_status: TaskStatus) -> List[TaskComplete]:
+		tasks = await task_repository.get_task_by_status(status=task_status, session=session)
+		if not tasks:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="Tasks not found."
+			)
+		return tasks
+
+	@classmethod
+	async def get_completed_tasks(cls, session: AsyncSession) -> List[TaskComplete]:
+		completed_tasks = await task_repository.get_completed_task(session)
+		if not completed_tasks:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="Tasks not available."
+			)
+		return completed_tasks
+
+	@classmethod
+	async def get_pending_tasks(cls, session: AsyncSession) -> List[TaskComplete]:
+		pending_tasks= await task_repository.get_pending_task(session)
+		if not pending_tasks:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="Tasks not found."
+			)
+		return pending_tasks
+
+	@classmethod
 	async def delete_all(cls, session: AsyncSession):
 		success = await task_repository.delete_tasks(session=session)
 		if not success:
@@ -79,5 +111,22 @@ class TaskController:
 				detail="Task not Found."
 			)
 		return {"detail": "Task deleted successfully."}
+
+	@classmethod
+	async def get_completed_tasks_by_supervisor(cls, session: AsyncSession, username: str) -> List[TaskComplete]:
+		tasks = await task_repository.get_completed_tasks_by_username(session, username)
+		if not tasks:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail="Tasks not found."
+			)
+		return tasks
+
+	@classmethod
+	async def get_completed_tasks_files(cls, session: AsyncSession):
+		tasks = await task_repository.get_completed_task(session)
+		file = get_file_from_database(tasks)
+		return file
+
 
 task_controller = TaskController()

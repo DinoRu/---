@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 import requests
 from sqlalchemy import select, delete
@@ -50,6 +50,18 @@ class TaskRepository:
 		return result.scalar_one_or_none()
 
 	@classmethod
+	async def get_pending_task(cls, session: AsyncSession):
+		stmt = select(Task).where(Task.status == TaskStatus.EXECUTING)
+		result = await session.execute(stmt)
+		return result.scalars().all()
+
+	@classmethod
+	async def get_task_by_status(cls, session: AsyncSession, status: TaskStatus):
+		stmt = select(Task).where(Task.status == status)
+		result = await session.execute(stmt)
+		return result.scalars().all()
+
+	@classmethod
 	async def update(cls, session: AsyncSession, task_id: uuid.UUID,
 					 update_data: TaskUpdate, user_name: str) -> Optional[Task]:
 		task = await cls.get_task(session, task_id)
@@ -89,6 +101,19 @@ class TaskRepository:
 		result = await session.execute(stmt)
 		await session.commit()
 		return result.rowcount > 0
+
+
+	@classmethod
+	async def get_completed_task(cls, session: AsyncSession):
+		stmt = select(Task).where(Task.status == TaskStatus.COMPLETED)
+		result = await session.execute(stmt)
+		return result.scalars().all()
+
+	@classmethod
+	async def get_completed_tasks_by_username(cls, session: AsyncSession, username: str):
+		stmt = select(Task).where(Task.supervisor == username)
+		result = await session.execute(stmt)
+		return result.scalars().all()
 
 
 task_repository = TaskRepository()

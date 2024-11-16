@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
-from app.routers import users, tasks
+from app.routers import users, tasks, healthcheck
 
 app = FastAPI(
 	title="Тек Блок",
@@ -10,6 +10,7 @@ app = FastAPI(
 	contacts="Diarra Moustapha",
 )
 
+app.include_router(healthcheck.router)
 app.include_router(users.router)
 app.include_router(tasks.router)
 

@@ -27,9 +27,9 @@ def set_header_row(worksheet: Worksheet, headers: list[str]) -> None:
 
 def set_column_sizes(worksheet: Worksheet) -> None:
 	column_widths = {
-		"A": 30, "B": 50, "C": 50, "D": 40, "E": 50,
-		"F": 40, "G": 50, "H": 50, "I": 50, "J": 50,
-		"K": 50, "L": 40
+		"A": 20, "B": 30, "C": 30, "D": 30, "E": 10,
+		"F": 40, "G": 30, "H": 20, "I": 20, "J": 50,
+		"K": 50, "L": 40, "M": 50
 	}
 
 	for col, width in column_widths.items():
