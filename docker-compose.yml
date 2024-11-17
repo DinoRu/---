@@ -1,43 +1,31 @@
 version: "3.9"
 
 services:
-  db:
-    image: postgres:15
-    container_name: tec-bloc_db
-    env_file: .env
-    volumes:
-      - tec-bloc_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    networks:
-      - app_network
-
   api:
     container_name: tec-bloc
     build:
-        context: .
-        dockerfile: Dockerfile
-    env_file: .env
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
     environment:
       ENV: docker
-      DB_URL: postgresql+asyncpg://dino:tec-bloc12345!@db:5432/tec-bloc
-    command: > 
-        bash -c "uvicorn main:app --host=0.0.0.0 --port=8000 --reload --workers=4 && \
-        echo 'App started successfully.
-              Running post-start tasks ... ' && \
-        sleep 5 && \
-        echo 'Post-start tasks completed!.'
+      DB_URL: postgresql+asyncpg://dino:tec-bloc12345!@db:5432/tec_bloc
+
+    command: >
+      bash -c "uvicorn main:app --host=0.0.0.0 --port=8000 --reload --workers=4 && \
+      echo 'App started successfully.
+            Running post-start tasks ... ' && \
+      sleep 5 && \
+      echo 'Post-start tasks completed!.'
       "
     ports:
       - "8000:8000"
     depends_on:
       - db
     healthcheck:
-      test: ["CMD", 'curl', '-f', "http://localhost:8000/healthcheck"]
+      test: [ "CMD", 'curl', '-f', "http://localhost:8000/healthcheck" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -52,13 +40,36 @@ services:
           cpus: '1.0'
           memory: '512M'
 
+
+  db:
+    image: postgres:15
+    container_name: tec-bloc_db
+    env_file:
+      - .env
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+    volumes:
+      - tec-bloc_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - app_network
+
   nginx:
     image: nginx:latest
     container_name: nginx_proxy
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - api
     networks:

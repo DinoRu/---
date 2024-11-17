@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED = 1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 
-WORKDIR /
+WORKDIR todo_api/
 
 RUN apt-get update &&  \
     apt-get install -y build-essential libpq-dev &&  \
@@ -13,12 +13,10 @@ RUN apt-get update &&  \
     rm -rf /var/lib/apt/lists/*
 
 
-COPY requirements.txt requirements.txt
+COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
 EXPOSE 8080
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--workers", "4"]
