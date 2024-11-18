@@ -5,9 +5,13 @@ from app.routers import users, tasks, healthcheck
 
 app = FastAPI(
 	title="Тек Блок",
-	description="Api for manage daily tasks",
+	description="API для управления ежедневными задачами",
 	version="1.0.0",
 	contacts="Diarra Moustapha",
+	openapi_url="/api/v1/openapi.json",
+	swagger_ui_parameters={
+        "persistAuthorization": True
+    },
 )
 
 app.include_router(healthcheck.router)
