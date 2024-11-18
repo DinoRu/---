@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
@@ -16,9 +17,10 @@ router = APIRouter(
 )
 
 # Get all users
-@router.get("/all", status_code=status.HTTP_200_OK, summary="Get all users")
+@router.get("/all", status_code=status.HTTP_200_OK, summary="Get all users", response_model=List[UserOut])
 async def list_users(session: AsyncSession = Depends(get_session)):
-	return await user_controller.all_users(session)
+	users = await user_controller.all_users(session)
+	return users
 
 
 # Get user by ID
