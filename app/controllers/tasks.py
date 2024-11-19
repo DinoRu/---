@@ -115,11 +115,6 @@ class TaskController:
 	@classmethod
 	async def get_completed_tasks_by_supervisor(cls, session: AsyncSession, username: str) -> List[TaskComplete]:
 		tasks = await task_repository.get_completed_tasks_by_username(session, username)
-		# if not tasks:
-		# 	raise HTTPException(
-		# 		status_code=status.HTTP_404_NOT_FOUND,
-		# 		detail="Tasks not found."
-		# 	)
 		return tasks
 
 	@classmethod
