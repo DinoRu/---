@@ -123,5 +123,11 @@ class TaskController:
 		file = get_file_from_database(tasks)
 		return file
 
+	@classmethod
+	async def get_tasks_by_user(cls, session: AsyncSession, location: str) -> List[TaskComplete]:
+		tasks = await task_repository.get_task_by_user(session=session, location=location)
+		return tasks
+
+
 
 task_controller = TaskController()

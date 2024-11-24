@@ -116,13 +116,24 @@ async def get_pending_tasks(session: AsyncSession = Depends(get_session)):
 	return pending_tasks
 
 
-@router.get("tasks/supervisor", status_code=status.HTTP_200_OK, summary="Get tasks by supervisor.")
-async def tasks_by_supervisor(
+@router.get("/tasks/supervisor", status_code=status.HTTP_200_OK, summary="Get tasks completed by supervisor.")
+async def tasks_completed_by_supervisor(
 		supervisor: User = Depends(get_current_user),
 		session: AsyncSession = Depends(get_session)):
 	tasks = await task_controller.get_completed_tasks_by_supervisor(session, supervisor.full_name)
 	return tasks
 
+
+@router.get("/supervisor/tasks", status_code=status.HTTP_200_OK, summary="Get tasks assigned by supervisor.")
+async def assigned_tasks_by_user(
+		session: AsyncSession = Depends(get_session),
+		supervisor: User = Depends(get_current_user)
+):
+	tasks = await task_controller.get_tasks_by_user(
+		session=session,
+		location=supervisor.location
+	)
+	return tasks
 
 @router.get("/",
 			status_code=status.HTTP_200_OK,

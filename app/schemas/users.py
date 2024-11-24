@@ -9,7 +9,9 @@ from pydantic_core.core_schema import FieldValidationInfo
 class User(BaseModel):
 	full_name: str
 	username: str
+	location: str
 	password: str
+
 
 	@field_validator("password")
 	def validate_password(cls, value: str, info: FieldValidationInfo) -> str:
@@ -40,6 +42,7 @@ class UserOut(BaseModel):
 	user_id: uuid.UUID
 	username: str
 	full_name: str
+	location: str
 
 	class Config:
 		from_attributes = True
