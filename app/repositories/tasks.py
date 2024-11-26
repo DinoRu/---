@@ -116,12 +116,19 @@ class TaskRepository:
 		return result.scalars().all()
 
 	@classmethod
-	async def get_task_by_user(cls, session: AsyncSession, location: str):
-		stmt = select(Task).where(
-			Task.location.like(f"%{location}%"),
-			Task.status == TaskStatus.EXECUTING.value
-		)
-		result = await session.execute(stmt)
+	async def get_task_by_user(cls, session: AsyncSession, location: str = None):
+		query = select(Task)
+		if location:
+			stmt = query.where(
+				Task.location.like(f"%{location}%"),
+				Task.status == TaskStatus.EXECUTING.value
+			)
+			result = await session.execute(stmt)
+		else:
+			stmt = select(Task).where(
+				Task.status == TaskStatus.EXECUTING.value
+			)
+			result = await session.execute(stmt)
 		return result.scalars().all()
 
 task_repository = TaskRepository()

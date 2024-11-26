@@ -124,7 +124,7 @@ class TaskController:
 		return file
 
 	@classmethod
-	async def get_tasks_by_user(cls, session: AsyncSession, location: str) -> List[TaskComplete]:
+	async def get_tasks_by_user(cls, session: AsyncSession, location: str = None) -> List[TaskComplete]:
 		tasks = await task_repository.get_task_by_user(session=session, location=location)
 		return tasks
 
