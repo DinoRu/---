@@ -7,12 +7,50 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.tasks import Task
-from app.schemas.tasks import CreateTask, TaskUpdate
+from app.schemas.tasks import CreateTask, TaskUpdate, AddNewTask
 from app.utils.photo_metadata import photo_metadata
 from app.utils.status import TaskStatus
 
 
 class TaskRepository:
+
+	@classmethod
+	async def add_new_task(cls, session: AsyncSession, data: AddNewTask, username: str) -> Task:
+		photo = requests.get(data.photo_url_1)
+		if photo.status_code != 200:
+			raise ValueError(
+				f"Photo not downloaded."
+			)
+		coordinates = photo_metadata.get_coordinate(photo.content)
+		if not coordinates:
+			raise ValueError(
+				f"Coordinates not found."
+			)
+		latitude = coordinates.latitude
+		longitude = coordinates.longitude
+		supervisor = username
+		completion_date = datetime.now().strftime("%d-%m-%Y %H:%M")
+		new_task = Task(
+			task_id=data.task_id,
+			code=data.code,
+			dispatcher_name=data.dispatcher_name,
+			location=data.location,
+			planner_date=data.planner_date,
+			work_type=data.work_type,
+			voltage_class=data.voltage_class,
+			completion_date=completion_date,
+			latitude=latitude,
+			longitude=longitude,
+			photo_url_1=data.photo_url_1,
+			photo_url_2=data.photo_url_2,
+			supervisor=supervisor,
+			comments=data.comments,
+			status=data.status
+		)
+		session.add(new_task)
+		await session.commit()
+		await session.refresh(new_task)
+		return new_task
 
 	@classmethod
 	async def create_task(cls, session: AsyncSession,  data: CreateTask) -> Task:

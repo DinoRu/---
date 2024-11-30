@@ -11,7 +11,7 @@ from app.authentication import get_current_user
 from app.controllers.tasks import task_controller
 from app.database import get_session
 from app.models.users import User
-from app.schemas.tasks import TaskComplete, CreateTask, TaskUpdate
+from app.schemas.tasks import TaskComplete, CreateTask, TaskUpdate, AddNewTask
 from app.schemas.users import UserOut
 from app.utils.status import TaskStatus
 
@@ -20,6 +20,23 @@ router = APIRouter(
 	tags=["Tasks"],
 	responses={404: {"description": "Not found."}}
 )
+
+
+@router.post("/add_task",
+			 status_code=status.HTTP_201_CREATED,
+			 response_model=TaskComplete,
+			 summary="Add new task.")
+async def add_task(
+		data_schema: AddNewTask,
+		user: User = Depends(get_current_user),
+		session: AsyncSession = Depends(get_session),
+):
+	task = await task_controller.add_new_task(
+		session=session,
+		data=data_schema,
+		supervisor=user.full_name
+	)
+	return task
 
 @router.post("/upload",
 			 status_code=status.HTTP_201_CREATED,

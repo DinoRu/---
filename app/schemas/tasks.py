@@ -34,6 +34,19 @@ class CreateTask(BaseModel):
 	status: TaskStatus
 
 
+class AddNewTask(BaseModel):
+	task_id: uuid.UUID
+	code: str
+	dispatcher_name: str
+	location: str
+	planner_date: str
+	work_type: str
+	voltage_class: float
+	photo_url_1: Optional[str | None]
+	photo_url_2: Optional[str | None]
+	comments: str | None
+	status: TaskStatus = TaskStatus.COMPLETED
+
 class TaskUpdate(BaseModel):
 	photo_url_1: str
 	photo_url_2: str

@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.tasks import task_repository
-from app.schemas.tasks import CreateTask, TaskComplete, TaskUpdate
+from app.schemas.tasks import CreateTask, TaskComplete, TaskUpdate, AddNewTask
 from app.schemas.users import UserOut
 from app.utils.excel import get_file_from_database
 from app.utils.photo_metadata import photo_metadata
@@ -15,6 +15,20 @@ from app.utils.status import TaskStatus
 
 
 class TaskController:
+
+	@classmethod
+	async def add_new_task(cls, session: AsyncSession, data: AddNewTask, supervisor: str):
+		new_task = await task_repository.add_new_task(
+			session=session,
+			data=data,
+			username=supervisor
+		)
+		if not new_task:
+			raise HTTPException(
+				status_code=status.HTTP_400_BAD_REQUEST,
+				detail="Invalid data provided."
+			)
+		return TaskComplete.from_orm(new_task)
 
 	@classmethod
 	async def add_task(cls, session: AsyncSession, data: CreateTask) -> TaskComplete:
