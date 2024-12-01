@@ -152,7 +152,7 @@ async def assigned_tasks_by_user(
 	)
 	return tasks
 
-@router.get("/completed/tasks", status_code=status.HTTP_200_OK, summary="Get tasks assigned by supervisor.")
+@router.get("/completed/tasks", status_code=status.HTTP_200_OK, summary="Get tasks completed by supervisor.")
 async def completed_tasks_by_user(
 		session: AsyncSession = Depends(get_session),
 		supervisor: User = Depends(get_current_user)
