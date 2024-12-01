@@ -31,7 +31,6 @@ class TaskRepository:
 		supervisor = username
 		completion_date = datetime.now().strftime("%d-%m-%Y %H:%M")
 		new_task = Task(
-			task_id=data.task_id,
 			code=data.code,
 			dispatcher_name=data.dispatcher_name,
 			location=data.location,

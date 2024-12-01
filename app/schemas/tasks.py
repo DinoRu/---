@@ -35,7 +35,6 @@ class CreateTask(BaseModel):
 
 
 class AddNewTask(BaseModel):
-	task_id: uuid.UUID
 	code: str
 	dispatcher_name: str
 	location: str
