@@ -169,4 +169,20 @@ class TaskRepository:
 			result = await session.execute(stmt)
 		return result.scalars().all()
 
+	@classmethod
+	async def get_task_completed_by_user(cls, session: AsyncSession, location: str = None):
+		query = select(Task)
+		if location:
+			stmt = query.where(
+				Task.location.like(f"%{location}%"),
+				Task.status == TaskStatus.COMPLETED.value
+			)
+			result = await session.execute(stmt)
+		else:
+			stmt = select(Task).where(
+				Task.status == TaskStatus.COMPLETED.value
+			)
+			result = await session.execute(stmt)
+		return result.scalars().all()
+
 task_repository = TaskRepository()
