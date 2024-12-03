@@ -10,7 +10,7 @@ from app.controllers.users import user_controller
 from app.database import get_session
 from app.models.users import User
 from app.schemas.users import CreateUserRequest, UpdateUserRequest, ChangePasswordRequest, UserOut, \
-	TokenData
+	TokenData, UserOutWithHashPass
 
 router = APIRouter(
 	prefix='/users',
@@ -27,7 +27,7 @@ async def list_users(session: AsyncSession = Depends(get_session)):
 @router.get("/info", status_code=status.HTTP_200_OK,
 			summary="Get authenticated user info")
 async def get_user_info(user: User = Depends(get_current_user)):
-	return UserOut.from_orm(user)
+	return UserOutWithHashPass.from_orm(user)
 
 # Get user by ID
 @router.get('/user/{user_id}', status_code=status.HTTP_200_OK, summary="Get user by ID")

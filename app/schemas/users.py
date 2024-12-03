@@ -55,3 +55,13 @@ class LoginData(BaseModel):
 class TokenData(BaseModel):
 	access_token: str
 	token_type: str
+
+class UserOutWithHashPass(BaseModel):
+	user_id: uuid.UUID
+	username: str
+	full_name: str
+	location: str
+	password: str
+
+	class Config:
+		from_attributes = True
