@@ -4,7 +4,7 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.users import User
+from app.models.users import User as UserModel
 from app.schemas.users import ChangePasswordRequest, CreateUserRequest
 from app.utils.hash_password import HashPassword
 
@@ -13,34 +13,34 @@ hsh_pwd = HashPassword()
 class UserRepository:
 
 	@classmethod
-	async def create(cls, session: AsyncSession, data: CreateUserRequest) -> User:
-		new_user = User(**data.dict())
-		hashed_password = hsh_pwd.create_hash(new_user.password)
-		new_user.password = hashed_password
-		try:
-			session.add(new_user)
-			await session.commit()
-			await session.refresh(new_user)
-		except SQLAlchemyError as e:
-			# Rollback en cas d'erreur
-			await session.rollback()
+	async def create(cls, session: AsyncSession, data: CreateUserRequest) -> UserModel:
+		hashed_password = hsh_pwd.create_hash(data.password)
+		new_user = UserModel(
+			full_name=data.full_name,
+			username=data.username,
+			location=data.location,
+			password=hashed_password
+		)
+		session.add(new_user)
+		await session.commit()
+		await session.refresh(new_user)
 		return new_user
 
 	@classmethod
 	async def get_users(cls, session: AsyncSession):
-		query = select(User)
+		query = select(UserModel)
 		result = await session.execute(query)
 		return result.scalars().all()
 
 	@classmethod
 	async def get_user(cls, session: AsyncSession, user_id: uuid.UUID):
-		stmt = select(User).where(User.user_id == user_id)
+		stmt = select(UserModel).where(UserModel.user_id == user_id)
 		result = await session.execute(stmt)
 		return result.scalar_one_or_none()
 
 	@classmethod
 	async def get_user_by_username(cls, session: AsyncSession, username: str):
-		stmt = select(User).where(User.username == username)
+		stmt = select(UserModel).where(UserModel.username == username)
 		result = await session.execute(stmt)
 		return result.scalar_one_or_none()
 
@@ -50,8 +50,8 @@ class UserRepository:
 					 user_id: uuid.UUID,
 					 full_name: str = None) -> bool:
 		stmt = (
-			update(User)
-			.where(User.user_id == user_id)
+			update(UserModel)
+			.where(UserModel.user_id == user_id)
 			.values(full_name=full_name)
 			.execution_options(synchronize_session='fetch')
 		)
@@ -61,14 +61,14 @@ class UserRepository:
 
 	@classmethod
 	async def delete(cls, user_id: uuid.UUID, session: AsyncSession) -> bool:
-		stmt = delete(User).where(User.user_id == user_id)
+		stmt = delete(UserModel).where(UserModel.user_id == user_id)
 		result = await session.execute(stmt)
 		await session.commit()
 		return result.rowcount > 0
 
 	@classmethod
 	async def delete_users(cls, session: AsyncSession) -> bool:
-		stmt = delete(User)
+		stmt = delete(UserModel)
 		result = await session.execute(stmt)
 		await session.commit()
 		return result.rowcount > 0

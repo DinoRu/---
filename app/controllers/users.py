@@ -4,6 +4,7 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.users import User
 from app.repositories.users import user_repository, hsh_pwd
 from app.schemas.users import UserOut, ChangePasswordRequest, CreateUserRequest, LoginData, \
 	TokenData
@@ -16,7 +17,7 @@ class UserController:
 	async def add_user(cls,
 					   session: AsyncSession,
 					   user_data: CreateUserRequest
-					   ):
+					   ) -> User:
 		user = await user_repository.create(
 			session=session,
 			data=user_data
