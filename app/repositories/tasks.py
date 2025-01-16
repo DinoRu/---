@@ -22,11 +22,12 @@ class TaskRepository:
 				f"Photo not downloaded."
 			)
 		coordinates = photo_metadata.get_coordinate(photo.content)
-		if not coordinates:
+		if coordinates:
+			latitude = coordinates.latitude
+			longitude = coordinates.longitude
+		else:
 			latitude = 0.0
 			longitude = 0.0
-		latitude = coordinates.latitude
-		longitude = coordinates.longitude
 		supervisor = username
 		completion_date = datetime.now().strftime("%d-%m-%Y %H:%M")
 		new_task = Task(
