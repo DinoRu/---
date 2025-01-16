@@ -11,7 +11,7 @@ class User(Base):
 	__tablename__ = "users"
 
 	user_id: Mapped[uuid.UUID] = mapped_column(
-											   primary_key=True, index=True, default=uuid.uuid4)
+								primary_key=True, index=True, default=uuid.uuid4)
 	username: Mapped[str] = mapped_column(unique=True, index=True)
 	full_name: Mapped[str]
 	location: Mapped[str] = mapped_column(nullable=True)

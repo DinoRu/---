@@ -23,9 +23,8 @@ class TaskRepository:
 			)
 		coordinates = photo_metadata.get_coordinate(photo.content)
 		if not coordinates:
-			raise ValueError(
-				f"Coordinates not found."
-			)
+			latitude = 0.0
+			longitude = 0.0
 		latitude = coordinates.latitude
 		longitude = coordinates.longitude
 		supervisor = username
