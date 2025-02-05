@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv(dotenv_path="../")
 
@@ -16,9 +16,12 @@ class Settings(BaseSettings):
 	app_debug: str
 	secret_key: str
 	algorithm: str
+	model_config = SettingsConfigDict(env_file=".env", extra='ignore')
 
 	def active_database_url(self):
 		return self.db_url if self.env == 'docker' else self.database_url
 
-	class Config:
-		env_file = "../.env"
+Config = Settings()
+
+
+

@@ -20,8 +20,6 @@ def get_file_from_database(tasks: list[Task]) -> BytesIO:
                 task.voltage_class,
                 task.work_type,
                 task.completion_date,
-                task.longitude,
-                task.latitude,
                 task.photo_url_1,
                 task.photo_url_2,
                 task.supervisor,

@@ -2,7 +2,11 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth.routes import auth_router
 from app.routers import users, tasks, healthcheck
+from app.tasks.routes import task_router
+from app.voltage.routes import voltage_router
+from app.workType.routes import work_type_router
 
 app = FastAPI(
 	title="Тек Блок",
@@ -27,8 +31,11 @@ app.add_middleware(
 
 
 app.include_router(healthcheck.router)
-app.include_router(users.router)
-app.include_router(tasks.router)
+app.include_router(auth_router, prefix="/auth", tags=['User'])
+app.include_router(task_router, prefix="/task", tags=["Tasks"])
+app.include_router(work_type_router, prefix="/workType")
+app.include_router(voltage_router, prefix="/voltage")
+
 
 @app.get('/')
 def root_controller():
