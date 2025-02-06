@@ -24,6 +24,7 @@ class TaskRead(TaskBase):
 	supervisor: Optional[str] = None
 	completion_date: Optional[str] = None
 	created_at: datetime
+	is_completed: bool
 
 
 class TaskCreate(TaskBase):

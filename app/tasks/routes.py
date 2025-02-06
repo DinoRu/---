@@ -114,6 +114,16 @@ async def update_task(
 
 
 @task_router.delete(
+	"/clear", status_code=status.HTTP_204_NO_CONTENT, dependencies=[role_checker]
+)
+async def delete_all_tasks(
+		session: AsyncSession = Depends(get_session)
+):
+	all_tasks = await task_service.tasks_delete(session)
+	return all_tasks
+
+
+@task_router.delete(
 	"/{task_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[role_checker]
 )
 async def delete_task(
@@ -130,16 +140,6 @@ async def delete_task(
 			return {}
 	else:
 		raise InsufficientPermission()
-
-
-@task_router.delete(
-	"/clear", status_code=status.HTTP_204_NO_CONTENT, dependencies=[role_checker]
-)
-async def delete_all_tasks(
-		session: AsyncSession = Depends(get_session)
-):
-	all_tasks = await task_service.tasks_delete(session)
-	return all_tasks
 
 
 @task_router.post("/download", status_code=status.HTTP_201_CREATED)
