@@ -6,6 +6,7 @@ from sqlmodel import select, desc, delete
 from app.db.models import Task
 from app.schemas.tasks import TaskUpdate
 from app.tasks.schemas import TaskCreate
+from app.tasks.utils import get_file_from_database
 
 
 class TaskService:
@@ -39,6 +40,7 @@ class TaskService:
 
 		new_task.supervisor = username
 		new_task.completion_date = datetime.now().strftime("%d-%m-%Y %H:%M")
+		new_task.is_completed = True
 
 		session.add(new_task)
 		await session.commit()
@@ -60,6 +62,7 @@ class TaskService:
 
 			task_to_update.supervisor = username
 			task_to_update.completion_date = datetime.now().strftime("%d-%m-%Y %H:%M")
+			task_to_update.is_completed = True
 
 			await session.commit()
 			await session.refresh(task_to_update)
@@ -85,3 +88,9 @@ class TaskService:
 		await session.execute(statement)
 		await session.commit()
 		return  {}
+
+	async def get_tasks_completed(self, session: AsyncSession):
+		stmt = select(Task).where(Task.is_completed == True)
+		result = await session.execute(stmt)
+		tasks = result.scalars().all()
+		return tasks

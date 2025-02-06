@@ -1,7 +1,7 @@
 
 services:
   api:
-    container_name: tec-bloc
+    container_name: api
     build:
       context: .
       dockerfile: Dockerfile

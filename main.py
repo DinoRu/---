@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.routes import auth_router
-from app.routers import users, tasks, healthcheck
+from app.routers import healthcheck
 from app.tasks.routes import task_router
 from app.voltage.routes import voltage_router
 from app.workType.routes import work_type_router

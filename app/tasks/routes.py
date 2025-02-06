@@ -2,6 +2,7 @@ import io
 from typing import List
 
 from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException
+from fastapi.responses import Response
 from openpyxl.reader.excel import load_workbook
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +12,7 @@ from app.db.models import Task
 from app.errors import TaskNotFound, InsufficientPermission
 from app.tasks.schemas import TaskRead, TaskCreate, TaskUpdate
 from app.tasks.service import TaskService
+from app.tasks.utils import get_file_from_database
 
 task_router = APIRouter()
 task_service = TaskService()
@@ -138,3 +140,21 @@ async def delete_all_tasks(
 ):
 	all_tasks = await task_service.tasks_delete(session)
 	return all_tasks
+
+
+@task_router.post("/download", status_code=status.HTTP_201_CREATED)
+async def download(
+	session: AsyncSession = Depends(get_session),
+):
+	tasks = await task_service.get_tasks_completed(session)
+	file = get_file_from_database(tasks)
+	file_content = file.getvalue()
+	headers = {
+		'Content-Disposition': 'attachment; filename="Reports.xlsx"',
+		"Access-Control-Allow-Origin": "*",
+		"Access-Control-Allow-Headers": "*",
+		"Access-Control_Allow-Methods": "POST, GET, OPTIONS",
+	}
+	return Response(content=file_content,
+					media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8",
+					headers=headers)

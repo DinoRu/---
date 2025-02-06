@@ -1,4 +1,5 @@
 from io import BytesIO
+from typing import List
 
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
@@ -44,7 +45,7 @@ def set_column_sizes(worksheet: Worksheet) -> None:
     worksheet.row_dimensions[2].height = 30
 
 
-def get_file_from_database(tasks: list[Task]) -> BytesIO:
+def get_file_from_database(tasks: List[Task]) -> BytesIO:
     workbook = Workbook()
     worksheet = workbook.active
     draw_report_header(worksheet)
@@ -54,7 +55,7 @@ def get_file_from_database(tasks: list[Task]) -> BytesIO:
                 task.id,
 				task.work_type,
                 task.dispatcher_name,
-                task.location,
+                task.address,
                 task.planner_date,
                 task.voltage_class,
                 task.completion_date,

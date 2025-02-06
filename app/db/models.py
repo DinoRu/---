@@ -37,6 +37,7 @@ class Task(SQLModel, table=True):
 	comments: Optional[str] = Field(sa_column=Column(pg.TEXT, nullable=True))
 	supervisor: Optional[str] = Field(sa_column=Column(pg.VARCHAR, nullable=True))
 	completion_date: str = Field(sa_column=Column(pg.VARCHAR, nullable=True))
+	is_completed: bool = Field(sa_column=Column(pg.BOOLEAN, default=False))
 	created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now, nullable=False))
 
 	def __repr__(self):
