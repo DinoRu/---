@@ -63,7 +63,6 @@ async def login_user(
 					"user_uid": str(user.uid)
 				},
 				refresh=True,
-				expiry=timedelta(days=REFRESH_TOKEN_EXPIRY)
 			)
 			return JSONResponse(
 				content={
