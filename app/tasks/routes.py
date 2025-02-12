@@ -114,7 +114,7 @@ async def update_task(
 
 
 @task_router.delete(
-	"/clear", status_code=status.HTTP_204_NO_CONTENT, dependencies=[role_checker]
+	"/clear", status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_all_tasks(
 		session: AsyncSession = Depends(get_session)
