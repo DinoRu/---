@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
+from redis.commands.search.querystring import OptionalNode
 
 
 class TaskBase(BaseModel):
@@ -11,6 +12,8 @@ class TaskBase(BaseModel):
 	work_type: str
 	voltage: float
 	job: Optional[str] = None
+	latitude: Optional[float] = None
+	longitude: Optional[float] = None
 	photo_url_1: Optional[str] = None
 	photo_url_2: Optional[str] = None
 	photo_url_3: Optional[str] = None

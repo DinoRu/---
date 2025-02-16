@@ -29,6 +29,8 @@ class Task(SQLModel, table=True):
 	planner_date: str = Field(sa_column=Column(pg.VARCHAR, nullable=True))
 	voltage: float = Field(foreign_key="voltages.volt")
 	job: Optional[str] = Field(sa_column=Column(pg.VARCHAR, nullable=True))
+	latitude: float | None = Field(sa_column=Column(pg.FLOAT, nullable=True))
+	longitude: float | None = Field(sa_column=Column(pg.FLOAT, nullable=True))
 	photo_url_1: Optional[str] = Field(sa_column=Column(pg.VARCHAR, nullable=True))
 	photo_url_2: Optional[str] = Field(sa_column=Column(pg.VARCHAR, nullable=True))
 	photo_url_3: Optional[str] = Field(sa_column=Column(pg.VARCHAR, nullable=True))

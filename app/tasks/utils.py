@@ -12,7 +12,7 @@ def draw_report_header(worksheet: Worksheet) -> None:
     headers = [
         "№", "Тип работ", "Диспетчерское наименование ОЭСХ", "Адрес объекта",
         "Дата работ по плану", "Класс напряжения, кВ", "Вид работ",
-        "Дата выполнения","фотофиксация 1", "фотофиксация 2",
+        "Дата выполнения",  "Широта", "Долгота", "фотофиксация 1", "фотофиксация 2",
         "фотофиксация 3", "фотофиксация 4", "фотофиксация 4",
         "Исполнитель", "Комментарий"
     ]
@@ -34,9 +34,10 @@ def set_header_row(worksheet: Worksheet, headers: list[str]) -> None:
 
 def set_column_sizes(worksheet: Worksheet) -> None:
     column_widths = {
-        "A": 20, "B": 30, "C": 30, "D": 30, "E": 10,
-        "F": 50, "G": 30, "H": 20, "I": 50, "J": 50,
-        "K": 50, "L": 50, "M": 50, "N": 50, "O": 50
+        "A": 10, "B": 30, "C": 30, "D": 30, "E": 30,
+        "F": 20, "G": 30, "H": 30, "I": 20, "J": 20,
+        "K": 50, "L": 50, "M": 50, "N": 50, "O": 50,
+        "P": 40, "Q": 60
     }
 
     for col, width in column_widths.items():
@@ -60,6 +61,8 @@ def get_file_from_database(tasks: List[Task]) -> BytesIO:
                 task.voltage,
                 task.job,
                 task.completion_date,
+                task.latitude,
+                task.longitude,
                 task.photo_url_1,
                 task.photo_url_2,
 				task.photo_url_3,

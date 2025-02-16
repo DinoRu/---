@@ -25,7 +25,7 @@ class WorkTypeService:
 		return work_type
 
 	async def get_all_work_type(self, session):
-		statement = select(WorkType).order_by(desc(WorkType.created_at))
+		statement = select(WorkType)
 
 		result = await session.execute(statement)
 		work_types = result.scalars().all()

@@ -1,5 +1,5 @@
 import io
-from typing import List
+from typing import List, Annotated
 
 from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException
 from fastapi.responses import Response
@@ -26,6 +26,11 @@ async def get_all_tasks(
 ):
 	tasks = await task_service.get_all_tasks(session)
 	return tasks
+
+@task_router.get("/completed", response_model=List[Task])
+async def get_completed_task(session: Annotated[AsyncSession, Depends(get_session)]):
+	completed_tasks = await task_service.get_tasks_completed(session)
+	return completed_tasks
 
 @task_router.get("/{task_id}", response_model=TaskRead, dependencies=[role_checker])
 async def get_task(
@@ -80,6 +85,8 @@ async def upload_file(
 				planner_date=str(sheet.cell(row=row, column=5).value) if sheet.cell(row=row, column=5).value else None,
 				voltage=sheet.cell(row=row, column=7).value if sheet.cell(row=row, column=7).value else None,
 				job=str(sheet.cell(row=row, column=8).value) if sheet.cell(row=row, column=8).value else None,
+				latitude=None,
+				longitude=None,
 				photo_url_1=None,
 				photo_url_2=None,
 				photo_url_3=None,
@@ -91,7 +98,7 @@ async def upload_file(
 			raise HTTPException(
 				status_code=400, detail=f"Missing column in the Excel file: {e}"
 			)
-		task = await task_service.create_tasks(new_task, session)
+		task = await task_service.create_task_from_file(new_task, session)
 		tasks.append(task)
 	return tasks
 

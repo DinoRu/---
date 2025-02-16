@@ -9,7 +9,7 @@ from app.voltage.schemas import VoltageCreateModel
 class VoltageService:
 
 	async def get_all_voltages(self, session: AsyncSession):
-		stmt = select(Voltage).order_by(desc(Voltage.created_at))
+		stmt = select(Voltage)
 
 		result = await session.execute(stmt)
 		return result.scalars().all()
