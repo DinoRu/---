@@ -14,7 +14,7 @@ from app.utils.photo_metadata import photo_metadata
 class TaskService:
 
 	async def get_all_tasks(self, session: AsyncSession):
-		statement = select(Task).order_by(desc(Task.created_at))
+		statement = select(Task).where(Task.is_completed == False).order_by(desc(Task.created_at))
 
 		result = await session.execute(statement)
 
