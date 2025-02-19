@@ -1,5 +1,6 @@
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select, desc
+from sqlmodel import select, desc, asc
 
 from app.db.models import Voltage
 from app.errors import VoltageNotFound
@@ -9,7 +10,7 @@ from app.voltage.schemas import VoltageCreateModel
 class VoltageService:
 
 	async def get_all_voltages(self, session: AsyncSession):
-		stmt = select(Voltage)
+		stmt = select(Voltage).order_by(asc(Voltage.volt))
 
 		result = await session.execute(stmt)
 		return result.scalars().all()

@@ -75,7 +75,6 @@ class TaskService:
 
 			new_photo_1 = update_data_dict.get('photo_url_1')
 			new_photo_2 = update_data_dict.get('photo_url_2')
-
 			if new_photo_1:
 				coordinates = photo_metadata.get_coordinate_from_url(new_photo_1)
 				if coordinates:
