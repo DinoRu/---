@@ -1,7 +1,7 @@
 import io
 from typing import List, Annotated
 
-from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException, Query
 from fastapi.responses import Response
 from openpyxl.reader.excel import load_workbook
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +18,19 @@ task_router = APIRouter()
 task_service = TaskService()
 access_token_bearer = AccessTokenBearer()
 role_checker = Depends(RoleChecker(['admin', 'user']))
+
+
+VALID_CODE = '202502'
+DOWNLOAD_APK_URL = f"https://firebasestorage.googleapis.com/v0/b/dagenergi-b0086.appspot.com/o/apk%2Fapp-release.apk.zip?alt=media&token=248b1700-a781-45d5-99db-44ffe94d7048"
+
+
+@task_router.get("/download")
+async def download_apk(
+		code: str = Query(..., min_length=6, max_length=6)
+):
+	if code != VALID_CODE:
+		raise HTTPException(status_code=403, detail="Invalid Code")
+	return  {"download_url": DOWNLOAD_APK_URL}
 
 @task_router.get("/", response_model=List[Task], dependencies=[role_checker])
 async def get_all_tasks(
