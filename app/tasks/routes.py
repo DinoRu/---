@@ -24,7 +24,7 @@ VALID_CODE = '202502'
 DOWNLOAD_APK_URL = f"https://firebasestorage.googleapis.com/v0/b/dagenergi-b0086.appspot.com/o/apk%2Fapp-release.apk.zip?alt=media&token=248b1700-a781-45d5-99db-44ffe94d7048"
 
 
-@task_router.get("/download")
+@task_router.get("/download_apk")
 async def download_apk(
 		code: str = Query(..., min_length=6, max_length=6)
 ):
