@@ -120,20 +120,18 @@ async def update_user(
 	user_updated = await user_service.update_user(user, update_data, session)
 	return user_updated
 
-@auth_router.delete("/user/{username}")
+@auth_router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_user(
-		username: str,
+		user_to_delete = Depends(get_user_or_404),
 		user = Depends(get_current_user),
 		session: AsyncSession = Depends(get_session),
 		_: bool = Depends(AccessTokenBearer)
 ):
 	if user.role == 'admin':
-		user = await user_service.get_user_by_username(username, session)
-		if user:
-			return await user_service.delete(username, session)
-		else:
-			raise UserNotFound
-	return HTTPException(
+		await session.delete(user_to_delete)
+		await session.commit()
+	else :
+		raise HTTPException(
 		status_code=status.HTTP_401_UNAUTHORIZED,
 		detail="Insufficient permissions"
 	)

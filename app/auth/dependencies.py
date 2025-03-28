@@ -76,10 +76,10 @@ class RoleChecker:
 
 
 async def get_user_or_404(
-		user_uid: str,
+		user_id: str,
 		session: AsyncSession = Depends(get_session)
 ) -> User:
-	select_query = select(User).where(User.uid == user_uid)
+	select_query = select(User).where(User.uid == user_id)
 	result = await session.execute(select_query)
 	user = result.scalar_one_or_none()
 	return user

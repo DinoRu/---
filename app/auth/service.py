@@ -44,13 +44,6 @@ class UserService:
 		await session.refresh(user)
 		return user
 
-	async def delete(self, username: str, session: AsyncSession):
-		user = await self.get_user_by_username(username, session)
-		if user:
-			await session.delete(user)
-			await session.commit()
-			return True
-		return False
 
 	async def delete_all_users(self, session: AsyncSession):
 		await session.execute(delete(User))
