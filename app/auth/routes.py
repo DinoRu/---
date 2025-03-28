@@ -1,12 +1,13 @@
 from datetime import timedelta, datetime
+from typing import List
 
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import RoleChecker, RefreshTokenBearer, AccessTokenBearer, get_current_user
-from app.auth.schemas import UserCreateModel, UserLoginModel, UserModel
+from app.auth.dependencies import RoleChecker, RefreshTokenBearer, AccessTokenBearer, get_current_user, get_user_or_404
+from app.auth.schemas import UserCreateModel, UserLoginModel, UserModel, UserPartialUpdate
 from app.auth.service import UserService
 from app.auth.utils import verify_password, create_access_token
 from app.db.main import get_session
@@ -78,6 +79,12 @@ async def login_user(
 		raise InvalidCredentials()
 
 
+# @auth_router.get("/users", response_model=list(UserModel), status_code=status.HTTP_200_OK)
+# async def get_all_users(
+#
+# )
+
+
 @auth_router.get("/refresh_token")
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):
 	expiry_timestamp = token_details['exp']
@@ -96,6 +103,22 @@ async def get_current_user(
 ):
 	return user
 
+@auth_router.get("/users", response_model=List[UserModel], status_code=status.HTTP_200_OK)
+async def get_all_users(
+		session: AsyncSession = Depends(get_session),
+):
+	users = await user_service.get_all_users(session)
+	return users
+
+
+@auth_router.patch("/update/{user_id}", status_code=status.HTTP_200_OK)
+async def update_user(
+		update_data: UserPartialUpdate,
+		user = Depends(get_user_or_404),
+		session: AsyncSession = Depends(get_session)
+):
+	user_updated = await user_service.update_user(user, update_data, session)
+	return user_updated
 
 @auth_router.delete("/user/{username}")
 async def remove_user(
@@ -110,4 +133,7 @@ async def remove_user(
 			return await user_service.delete(username, session)
 		else:
 			raise UserNotFound
-	raise InsufficientPermission
+	return HTTPException(
+		status_code=status.HTTP_401_UNAUTHORIZED,
+		detail="Insufficient permissions"
+	)

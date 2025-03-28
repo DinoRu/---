@@ -2,12 +2,20 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.auth.schemas import UserCreateModel
+from app.auth.schemas import UserCreateModel, UserPartialUpdate
 from app.auth.utils import generate_passwd_hash
 from app.db.models import User
 
 
 class UserService:
+
+	@classmethod
+	async def get_all_users(cls, session: AsyncSession):
+		stmt = select(User).order_by(User.created_at)
+		result = await session.execute(stmt)
+		users = result.scalars().all()
+		return users
+
 	async def get_user_by_username(self, username: str, session: AsyncSession):
 		statement = select(User).where(User.username == username)
 		result = await session.execute(statement)
@@ -27,11 +35,13 @@ class UserService:
 		await session.commit()
 		return new_user
 
-	async def update_user(self, user: User, user_data: dict, session: AsyncSession):
-		for k, v in user_data.items():
+	@classmethod
+	async def update_user(cls, user: User, user_data: UserPartialUpdate, session: AsyncSession):
+		user_data_dict = user_data.dict(exclude_unset=True)
+		for k, v in user_data_dict.items():
 			setattr(user, k, v)
 		await session.commit()
-
+		await session.refresh(user)
 		return user
 
 	async def delete(self, username: str, session: AsyncSession):
@@ -45,4 +55,7 @@ class UserService:
 	async def delete_all_users(self, session: AsyncSession):
 		await session.execute(delete(User))
 		await session.commit()
+
+
+
 

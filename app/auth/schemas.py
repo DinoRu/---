@@ -35,3 +35,8 @@ class UserLoginModel(BaseModel):
 	username: str = Field(max_length=25)
 	password: str = Field(min_length=6)
 
+
+class UserPartialUpdate(BaseModel):
+	username: str | None = None
+	full_name: str | None = None
+

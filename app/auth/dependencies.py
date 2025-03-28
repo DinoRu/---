@@ -2,6 +2,7 @@ from typing import List, Any
 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Request, Depends
+from sqlalchemy import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.auth.service import UserService
@@ -73,6 +74,15 @@ class RoleChecker:
 
 		raise InsufficientPermission()
 
+
+async def get_user_or_404(
+		user_uid: str,
+		session: AsyncSession = Depends(get_session)
+) -> User:
+	select_query = select(User).where(User.uid == user_uid)
+	result = await session.execute(select_query)
+	user = result.scalar_one_or_none()
+	return user
 
 
 
