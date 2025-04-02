@@ -73,7 +73,8 @@ async def login_user(
 					"refresh_token": refresh_token,
 					"user": {
 						"username": user.username,
-						"uid": str(user.uid)
+						"uid": str(user.uid),
+						"role": user.role
 					}
 				}
 			)
