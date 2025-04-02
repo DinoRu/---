@@ -79,12 +79,6 @@ async def login_user(
 		raise InvalidCredentials()
 
 
-# @auth_router.get("/users", response_model=list(UserModel), status_code=status.HTTP_200_OK)
-# async def get_all_users(
-#
-# )
-
-
 @auth_router.get("/refresh_token")
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):
 	expiry_timestamp = token_details['exp']
@@ -111,6 +105,14 @@ async def get_all_users(
 	return users
 
 
+@auth_router.get("/users/{user_id}", status_code=status.HTTP_200_OK, response_model=UserModel)
+async def get_user(
+		user = Depends(get_user_or_404),
+		session: AsyncSession = Depends(get_session)
+):
+	return user
+
+
 @auth_router.patch("/update/{user_id}", status_code=status.HTTP_200_OK)
 async def update_user(
 		update_data: UserPartialUpdate,
@@ -135,3 +137,5 @@ async def remove_user(
 		status_code=status.HTTP_401_UNAUTHORIZED,
 		detail="Insufficient permissions"
 	)
+
+
