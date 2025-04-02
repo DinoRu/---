@@ -16,6 +16,7 @@ from app.errors import UserAlreadyExists, InvalidCredentials, InvalidToken, User
 auth_router = APIRouter()
 user_service = UserService()
 role_checker = RoleChecker(["admin", "user"])
+admin_checker = RoleChecker(["admin"])
 
 REFRESH_TOKEN_EXPIRY = 2
 
@@ -78,6 +79,8 @@ async def login_user(
 			)
 		raise InvalidCredentials()
 
+
+@auth_router.post('/admin/login')
 
 @auth_router.get("/refresh_token")
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):

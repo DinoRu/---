@@ -11,7 +11,7 @@ class User(SQLModel, table=True):
 	uid: uuid.UUID = Field(sa_column=Column(pg.UUID, primary_key=True, default=uuid.uuid4))
 	username: str = Field(sa_column=Column(pg.VARCHAR, unique=True, nullable=False))
 	full_name: str
-	role: str = Field(sa_column=Column(pg.VARCHAR, nullable=False, server_default='user'))
+	role: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
 	password_hash: str = Field(sa_column=Column(pg.VARCHAR, nullable=False), exclude=True)
 	created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now))
 	updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, nullable=False, onupdate=datetime.now, default=datetime.now))
