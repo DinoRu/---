@@ -30,7 +30,7 @@ def upgrade() -> None:
     op.drop_constraint('tasks_voltage_id_fkey', 'tasks', type_='foreignkey')
     op.drop_column('tasks', 'work_type_id')
     op.drop_column('tasks', 'voltage_id')
-    op.drop_column('tasks', 'supervisor')
+    # op.drop_column('tasks', 'supervisor')
     # ### end Alembic commands ###
 
 
