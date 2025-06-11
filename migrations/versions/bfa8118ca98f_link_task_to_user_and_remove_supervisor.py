@@ -30,13 +30,13 @@ def upgrade() -> None:
     bind = op.get_bind()
     session = Session(bind=bind)
 
-    result = bind.execute(select(users.c.full_name, users.c.uid))
+    result = bind.execute(select(users.c.username, users.c.uid))
     user_map = dict(result.fetchall())
 
-    for full_name, uid in user_map.items():
+    for username, uid in user_map.items():
         bind.execute(
             update(tasks)
-            .where(tasks.c.supervisor == full_name)
+            .where(tasks.c.supervisor == username)
             .values(worker_id=uid)
         )
     op.alter_column('tasks', 'worker_id', nullable=False)
