@@ -1,24 +1,34 @@
 import io
+from datetime import datetime
 from typing import List, Annotated
 
 from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException, Query
 from fastapi.responses import Response
 from openpyxl.reader.excel import load_workbook
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from sqlmodel import select
 
-from app.auth.dependencies import AccessTokenBearer, RoleChecker
+from app.auth.dependencies import AccessTokenBearer, RoleChecker, get_current_user
 from app.db.main import get_session
-from app.db.models import Task
+from app.db.models import Task, WorkType, Voltage, User
 from app.errors import TaskNotFound, InsufficientPermission
+from app.tasks.dependencies import get_task_or_404
 from app.tasks.schemas import TaskRead, TaskCreate, TaskUpdate
 from app.tasks.service import TaskService
 from app.tasks.utils import get_file_from_database
+from app.utils.photo_metadata import photo_metadata
 
 task_router = APIRouter()
 task_service = TaskService()
 access_token_bearer = AccessTokenBearer()
-role_checker = Depends(RoleChecker(['admin', 'user']))
 
+admin_checker = Depends(RoleChecker(['admin']))
+worker_checker = Depends(RoleChecker(['admin', 'worker']))
+user_checker = Depends(RoleChecker(['admin', 'user']))
+guest_checker = Depends(RoleChecker(['guest']))
+all_roles_checker = Depends(RoleChecker(['admin', 'user', 'worker', 'guest']))
 
 VALID_CODE = '202502'
 DOWNLOAD_APK_URL = f"https://firebasestorage.googleapis.com/v0/b/dagenergi-b0086.appspot.com/o/apk%2Fapp-release.apk.zip?alt=media&token=248b1700-a781-45d5-99db-44ffe94d7048"
@@ -32,47 +42,63 @@ async def download_apk(
 		raise HTTPException(status_code=403, detail="Invalid Code")
 	return  {"download_url": DOWNLOAD_APK_URL}
 
-@task_router.get("/", response_model=List[Task], dependencies=[role_checker])
+
+@task_router.get("/", response_model=List[TaskRead], dependencies=[all_roles_checker])
 async def get_all_tasks(
 		session: AsyncSession = Depends(get_session),
 		_: dict = Depends(access_token_bearer)
 ):
-	tasks = await task_service.get_all_tasks(session)
+	stmt = select(Task).options(selectinload(Task.worker)).where(Task.is_completed == False).order_by(Task.created_at)
+	result = await session.execute(stmt)
+	tasks = result.scalars().all()
 	return tasks
 
-@task_router.get("/completed", response_model=List[Task])
-async def get_completed_task(session: Annotated[AsyncSession, Depends(get_session)]):
-	completed_tasks = await task_service.get_tasks_completed(session)
-	return completed_tasks
 
-@task_router.get("/{task_id}", response_model=TaskRead, dependencies=[role_checker])
+@task_router.get("/completed", response_model=List[TaskRead], dependencies=[all_roles_checker])
+async def get_completed_task(session: Annotated[AsyncSession, Depends(get_session)]):
+	stmt = select(Task).options(selectinload(Task.worker)).where(Task.is_completed == True).order_by(Task.created_at)
+	result = await session.execute(stmt)
+	tasks = result.scalars().all()
+	return tasks
+
+
+@task_router.get("/{task_id}", response_model=TaskRead, dependencies=[worker_checker])
 async def get_task(
-		task_id: int,
+		task: Task = Depends(get_task_or_404),
 		session: AsyncSession = Depends(get_session),
 		_: dict = Depends(access_token_bearer)
-) -> dict:
-	task = await task_service.get_task(task_id, session)
-
-	if task:
-		return task
-	else:
-		raise TaskNotFound
+):
+	return task
 
 
 @task_router.post(
 	"/",
 	status_code=status.HTTP_201_CREATED,
 	response_model=TaskRead,
-	dependencies=[role_checker]
+	dependencies=[worker_checker]
 )
-async def create_a_task(
+async def add_task(
 		task_data: TaskCreate,
-		session: AsyncSession = Depends(get_session),
-		token_details: dict = Depends(access_token_bearer)
+		worker: User = Depends(get_current_user),
+		session: AsyncSession = Depends(get_session)
 ):
-	username = token_details.get("user")["username"]
-	new_task = await task_service.create_a_task(task_data, username, session)
-	return new_task
+	coordinates = None
+	# Utiliser les deux premières photos pour obtenir les coordonnées
+	if task_data.photos and len(task_data.photos) >= 2:
+		coordinates = photo_metadata.get_coordinate_from_url(task_data.photos[0])
+		if not coordinates:
+			coordinates = photo_metadata.get_coordinate_from_url(task_data.photos[1])
+
+	task = Task(**task_data.dict(), worker_id=worker.uid)
+	task.is_completed = True
+	task.completion_date = datetime.now().strftime("%d-%m-%Y %H:%M")
+	if coordinates:
+		task.latitude = coordinates.latitude
+		task.longitude = coordinates.longitude
+	session.add(task)
+	await session.commit()
+	await session.refresh(task)
+	return task
 
 
 @task_router.post(
@@ -100,11 +126,7 @@ async def upload_file(
 				job=str(sheet.cell(row=row, column=8).value) if sheet.cell(row=row, column=8).value else None,
 				latitude=None,
 				longitude=None,
-				photo_url_1=None,
-				photo_url_2=None,
-				photo_url_3=None,
-				photo_url_4=None,
-				photo_url_5=None,
+				photos=[],
 				comments=None
 			)
 		except KeyError as e:
@@ -119,50 +141,61 @@ async def upload_file(
 @task_router.patch(
 	"/{task_id}",
 	response_model=TaskRead,
-	dependencies=[role_checker]
+	dependencies=[worker_checker]
 )
 async def update_task(
-		task_id: int, task_update_data: TaskUpdate, session: AsyncSession = Depends(get_session),
-		token_details: dict = Depends(access_token_bearer)
+		update_data: TaskUpdate,
+		task = Depends(get_task_or_404),
+		worker = Depends(get_current_user),
+		session: AsyncSession = Depends(get_session),
 ):
-	username = token_details.get('user')["username"]
-	updated_task = await task_service.update_task(task_id, task_update_data, session, username)
-	if updated_task is None:
-		raise TaskNotFound
-	else:
-		return updated_task
+	update_data_dict = update_data.model_dump(exclude_unset=True)
+	photos = update_data_dict.get("photos")
 
+	# Si des photos sont fournies, on essaie d'en extraire les coordonnées
+	if photos and isinstance(photos, list) and len(photos) > 0:
+		first_photo = photos[0]
+		coordinates = photo_metadata.get_coordinate_from_url(first_photo)
+		if coordinates:
+			update_data_dict["latitude"] = coordinates.latitude
+			update_data_dict["longitude"] = coordinates.longitude
+
+	for key, value in update_data_dict.items():
+		setattr(task, key, value)
+
+	task.worker_id = worker.uid
+	task.completion_date =  datetime.now().strftime("%d-%m-%Y %H:%M")
+	task.is_completed = True
+
+	await session.commit()
+	await session.refresh(task)
+	return task
 
 @task_router.delete(
-	"/clear", status_code=status.HTTP_204_NO_CONTENT
+	"/clear", status_code=status.HTTP_204_NO_CONTENT,
+	dependencies=[admin_checker]
 )
 async def delete_all_tasks(
 		session: AsyncSession = Depends(get_session)
 ):
-	all_tasks = await task_service.tasks_delete(session)
-	return all_tasks
+	statement = delete(Task)
+	await session.execute(statement)
+	await session.commit()
 
 
 @task_router.delete(
-	"/{task_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[role_checker]
+	"/{task_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[admin_checker]
 )
 async def delete_task(
-		task_id: int, session: AsyncSession = Depends(get_session),
-		token_data: dict = Depends(access_token_bearer)
+		task = Depends(get_current_user),
+		session: AsyncSession = Depends(get_session),
+
 ):
-	role = token_data.get('user')['role']
-	if role == 'admin':
-		task_to_delete = await task_service.task_delete(task_id, session)
-
-		if task_to_delete is None:
-			raise TaskNotFound
-		else:
-			return {}
-	else:
-		raise InsufficientPermission()
+	await session.delete(task)
+	await session.commit()
 
 
-@task_router.post("/download", status_code=status.HTTP_201_CREATED)
+@task_router.post("/download", status_code=status.HTTP_201_CREATED, dependencies=[all_roles_checker])
 async def download(
 	session: AsyncSession = Depends(get_session),
 ):

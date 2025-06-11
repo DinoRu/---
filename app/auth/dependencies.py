@@ -69,10 +69,9 @@ class RoleChecker:
 	def __call__(self, current_user: User = Depends(get_current_user)) -> Any:
 		if not current_user:
 			raise UserNotFound()
-		if current_user.role in self.allowed_roles:
-			return True
 
-		raise InsufficientPermission()
+		if current_user.role not in self.allowed_roles:
+			raise InsufficientPermission()
 
 
 async def get_user_or_404(

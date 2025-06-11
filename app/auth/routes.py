@@ -1,5 +1,6 @@
 from datetime import timedelta, datetime
 from typing import List
+from uuid import uuid4
 
 from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -15,12 +16,15 @@ from app.errors import UserAlreadyExists, InvalidCredentials, InvalidToken, User
 
 auth_router = APIRouter()
 user_service = UserService()
-role_checker = RoleChecker(["admin", "user"])
-admin_checker = RoleChecker(["admin"])
+admin_checker = Depends(RoleChecker(['admin']))
+worker_checker = Depends(RoleChecker(['admin', 'worker']))
+user_checker = Depends(RoleChecker(['admin', 'user']))
+guest_checker = Depends(RoleChecker(['guest']))
+all_roles_checker = Depends(RoleChecker(['admin', 'user', 'worker', 'guest']))
 
-REFRESH_TOKEN_EXPIRY = 2
+REFRESH_TOKEN_EXPIRY = 7
 
-#Bearer Token
+
 
 @auth_router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user_account(
@@ -37,6 +41,7 @@ async def create_user_account(
 		"message": "Account created!",
 		"user": new_user
 	}
+
 
 @auth_router.post("/login")
 async def login_user(
@@ -79,9 +84,8 @@ async def login_user(
 				}
 			)
 		raise InvalidCredentials()
+	return None
 
-
-@auth_router.post('/admin/login')
 
 @auth_router.get("/refresh_token")
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):
@@ -100,6 +104,7 @@ async def get_current_user(
 		_: bool = Depends(AccessTokenBearer)
 ):
 	return user
+
 
 @auth_router.get("/users", response_model=List[UserModel], status_code=status.HTTP_200_OK)
 async def get_all_users(
@@ -126,20 +131,14 @@ async def update_user(
 	user_updated = await user_service.update_user(user, update_data, session)
 	return user_updated
 
-@auth_router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+
+@auth_router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[admin_checker])
 async def remove_user(
 		user_to_delete = Depends(get_user_or_404),
 		user = Depends(get_current_user),
 		session: AsyncSession = Depends(get_session),
 		_: bool = Depends(AccessTokenBearer)
 ):
-	if user.role == 'admin':
-		await session.delete(user_to_delete)
-		await session.commit()
-	else :
-		raise HTTPException(
-		status_code=status.HTTP_401_UNAUTHORIZED,
-		detail="Insufficient permissions"
-	)
-
+	await session.delete(user_to_delete)
+	await session.commit()
 

@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.routes import auth_router
-from app.routers import healthcheck
 from app.tasks.routes import task_router
 from app.voltage.routes import voltage_router
 from app.workType.routes import work_type_router
@@ -30,8 +29,7 @@ app.add_middleware(
 )
 
 
-app.include_router(healthcheck.router)
-app.include_router(auth_router, prefix="/auth", tags=['User'])
+app.include_router(auth_router, prefix="/auth", tags=['Auth'])
 app.include_router(task_router, prefix="/task", tags=["Tasks"])
 app.include_router(work_type_router, prefix="/workType")
 app.include_router(voltage_router, prefix="/voltage")

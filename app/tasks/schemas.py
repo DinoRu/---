@@ -1,43 +1,38 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
+from uuid import UUID
 
-from pydantic import BaseModel
-from redis.commands.search.querystring import OptionalNode
+from pydantic import BaseModel, conlist, Field
+
+from app.auth.schemas import UserModel
 
 
 class TaskBase(BaseModel):
 	dispatcher_name: str
 	address: str
 	planner_date: Optional[str] = None
-	work_type: str
-	voltage: float
 	job: Optional[str] = None
-	latitude: Optional[float] = None
-	longitude: Optional[float] = None
-	photo_url_1: Optional[str] = None
-	photo_url_2: Optional[str] = None
-	photo_url_3: Optional[str] = None
-	photo_url_4: Optional[str] = None
-	photo_url_5: Optional[str] = None
+	photos: Optional[List[str]] = Field(default=None, max_length=5)
 	comments: Optional[str] = None
 
 
 class TaskRead(TaskBase):
 	id: int
-	supervisor: Optional[str] = None
+	latitude: Optional[float] = None
+	longitude: Optional[float] = None
 	completion_date: Optional[str] = None
 	created_at: datetime
 	is_completed: bool
 
+	worker: Optional[UserModel] = None
+
 
 class TaskCreate(TaskBase):
-	pass
+	work_type: str
+	voltage: float
+
 
 
 class TaskUpdate(BaseModel):
-	photo_url_1: Optional[str] = None
-	photo_url_2: Optional[str] = None
-	photo_url_3: Optional[str] = None
-	photo_url_4: Optional[str] = None
-	photo_url_5: Optional[str] = None
+	photos: Optional[List[str]] = Field(default=None, min_length=2, max_length=5)
 	comments: Optional[str] = None
