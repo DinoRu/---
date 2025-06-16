@@ -43,13 +43,13 @@ def upgrade() -> None:
     bind.execute(
         update(tasks_table).values(
             photos=sa.func.array_remove(
-                sa.array[
+                pg.array([
                     tasks_table.c.photo_url_1,
                     tasks_table.c.photo_url_2,
                     tasks_table.c.photo_url_3,
                     tasks_table.c.photo_url_4,
                     tasks_table.c.photo_url_5,
-                ],
+                ]),
                 None
             )
         )
