@@ -2,7 +2,7 @@ from datetime import timedelta, datetime
 from typing import List
 from uuid import uuid4
 
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, Body
 from fastapi.responses import JSONResponse
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import RoleChecker, RefreshTokenBearer, AccessTokenBearer, get_current_user, get_user_or_404
 from app.auth.schemas import UserCreateModel, UserLoginModel, UserModel, UserPartialUpdate
 from app.auth.service import UserService
-from app.auth.utils import verify_password, create_access_token
+from app.auth.utils import verify_password, create_access_token, generate_passwd_hash
 from app.db.main import get_session
 from app.errors import UserAlreadyExists, InvalidCredentials, InvalidToken, UserNotFound, InsufficientPermission
 
@@ -23,7 +23,6 @@ guest_checker = Depends(RoleChecker(['guest']))
 all_roles_checker = Depends(RoleChecker(['admin', 'user', 'worker', 'guest']))
 
 REFRESH_TOKEN_EXPIRY = 7
-
 
 
 @auth_router.post("/signup", status_code=status.HTTP_201_CREATED)
@@ -141,4 +140,32 @@ async def remove_user(
 ):
 	await session.delete(user_to_delete)
 	await session.commit()
+
+
+
+@auth_router.post("/change-password", status_code=status.HTTP_200_OK)
+async def change_password(
+		current_password: str = Body(...),
+		new_password: str = Body(...),
+		user: UserModel = Depends(get_current_user),
+		session: AsyncSession = Depends(get_session)
+):
+	if not verify_password(current_password, user.password_hash):
+		raise HTTPException(
+			status_code=status.HTTP_401_UNAUTHORIZED,
+			detail="Mot de passe actuel incorrect"
+		)
+
+	if len(new_password) < 8:
+		raise HTTPException(
+			status_code=status.HTTP_400_BAD_REQUEST,
+			detail="Le mot de passe doit contenir au moins 8 caractères"
+		)
+
+	# Mettre à jour le mot de passe
+	user.password_hash = generate_passwd_hash(new_password)
+	session.add(user)
+	await session.commit()
+
+	return {"message": "Mot de passe mis à jour avec succès"}
 

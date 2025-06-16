@@ -18,6 +18,8 @@ class TaskBase(BaseModel):
 
 class TaskRead(TaskBase):
 	id: int
+	work_type: str
+	voltage: float
 	latitude: Optional[float] = None
 	longitude: Optional[float] = None
 	completion_date: Optional[str] = None

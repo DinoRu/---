@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -42,5 +43,5 @@ class UserLoginModel(BaseModel):
 class UserPartialUpdate(BaseModel):
     username: str | None = None
     full_name: str | None = None
-    role: UserRole
+    role: Optional[UserRole] = None
 
